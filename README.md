@@ -1,5 +1,18 @@
-# Simulador-de-Escalonamento-de-Processos
+# Process Scheduler Simulator
 Este projeto pede um simulador de escalonamento de processos, escrito em C, que gera cargas de trabalho controladas por seed, executa algoritmos clássicos (FCFS, Round Robin com quantum configurável e Prioridade não-preemptivo) e um algoritmo próprio proposto pela equipe.
+
+## 📦 Directory Structure
+
+```
+Process-Scheduler-Simulator/
+├── docs/                                    # Documentation Directory
+├── include/                                 # Header files Directory
+├── relatorio/                               # Report Directory
+├── results/                                 # Results Directory
+├── scripts/                                 # Scripts Directory
+├── src/                                     # C files Directory
+└── README.md                                # This file
+```
 
 ## 👤 Members
 | Contributors 🧑‍🎓  | Roles 🚀 |
