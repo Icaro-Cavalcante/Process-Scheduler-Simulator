@@ -1,5 +1,11 @@
-# Process Scheduler Simulator
-Este projeto pede um simulador de escalonamento de processos, escrito em C, que gera cargas de trabalho controladas por seed, executa algoritmos clássicos (FCFS, Round Robin com quantum configurável e Prioridade não-preemptivo) e um algoritmo próprio proposto pela equipe.
+# 👨🏾‍💻 Process Scheduler Simulator
+
+> This project implements a CPU scheduling simulator in C for the Operating
+Systems course (Unit 3 assignment). The simulator generates seed-controlled
+process workloads and evaluates classic scheduling algorithms — First-Come,
+First-Served (FCFS), Round Robin (with configurable quantum), and
+non-preemptive Priority scheduling — alongside a custom algorithm proposed
+by the team.
 
 ## 📦 Directory Structure
 
