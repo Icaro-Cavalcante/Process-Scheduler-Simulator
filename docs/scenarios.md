@@ -1,12 +1,23 @@
 # Process Arrival Model and Benchmark Scenarios
 
+- **Task:** ASH-03 (scenarios) + JCK-02 (process arrival model)
+- **Depends on:** `docs/modelo_processo.md` (ASH-01)
+- **Acceptance criteria:** numerical parameters sufficient for the workload generator (ELI-02 / ICR-05).
+- **Consumed by:** ICR-05 (implementation of the seeded generator); JCK-09 (`docs/formato_csv.md`) must stay consistent with the CSV contract in Section 5.
+
 ---
 
 ## 1. Overview
 
-This document formalizes the **Process Arrival Model** and the parameter specifications for the **4 Simulation Scenarios**: First-Come-First-Served, Round Robin, Priority and a Custom/Original algorithm.
+This document formalizes the **Process Arrival Model** and the parameter specifications for the **4
+mandatory Simulation Scenarios**, to be evaluated across First-Come-First-Served, Round Robin, Priority,
+and a Custom/Original algorithm.
 
-The deterministic seed-based workload generator will use these parameters to synthesize reproducible workload datasets across all experiments.
+The deterministic seed-based workload generator will use these parameters to synthesize reproducible
+workload datasets across all experiments.
+
+> All time values below (bursts, I/O, inter-arrival) are expressed in abstract simulation ticks / time
+> units, with no direct correspondence to real-world milliseconds.
 
 ---
 
@@ -14,11 +25,13 @@ The deterministic seed-based workload generator will use these parameters to syn
 
 ### 2.1. Arrival Time Definition ($T_{\text{arrival}}$)
 
-The process arrival time $T_{\text{arrival}}$ represents the discrete clock tick at which a simulated process is admitted into the system and enqueued into the **Ready Queue**.
+The process arrival time $T_{\text{arrival}}$ represents the discrete clock tick at which a simulated
+process is admitted into the system and enqueued into the **Ready Queue**.
 
 To ensure statistical validity and realistic scheduling behavior:
 * Process arrival times are generated **pseudo-randomly using a deterministic seed**.
-* The arrival model uses a **stochastic inter-arrival distribution (Exponential / Poisson process)** or a **Uniform distribution across the simulation timeline $[0, T_{\text{max}}]$**.
+* The arrival model uses a **stochastic inter-arrival distribution (Exponential / Poisson process)** or
+  a **Uniform distribution across the simulation timeline $[0, T_{\text{max}}]$**.
 
 $$\Delta t_{\text{arrival}} \sim \text{Exp}(\lambda) \quad \implies \quad T_{\text{arrival}}^{(i)} = T_{\text{arrival}}^{(i-1)} + \Delta t_{\text{arrival}}$$
 
@@ -26,25 +39,39 @@ $$\Delta t_{\text{arrival}} \sim \text{Exp}(\lambda) \quad \implies \quad T_{\te
 
 ### 2.2. Technical Justification: Why Avoid Instant 0 Arrival?
 
-For study purposes, the team has decided **NOT to use instant 0 arrival**, opting instead for **time-distributed stochastic arrival**.
+For study purposes, the team has decided **NOT to use instant 0 arrival**, opting instead for
+**time-distributed stochastic arrival**.
 
 **Limitations of Instant 0 Arrival (Why Avoided):**
-1. **Unrealistic Operating System Behavior**: Production operating systems receive process creation requests dynamically over time.
-2. **Neutralization of Real-Time Preemption**: If all processes arrive at $t = 0$, scheduler decisions become mostly static. Dynamic preemption upon arrival of higher-priority processes is eliminated.
-3. **Queue Inflation**: Admitting 1,000+ processes simultaneously creates extreme initial queue contention, distorting wait-time metrics.
+1. **Unrealistic Operating System Behavior**: Production operating systems receive process creation
+   requests dynamically over time.
+2. **Neutralization of Real-Time Preemption**: If all processes arrive at $t = 0$, scheduler decisions
+   become mostly static. Dynamic preemption upon arrival of higher-priority processes is eliminated.
+3. **Queue Inflation**: Admitting 1,000+ processes simultaneously creates extreme initial queue
+   contention, distorting wait-time metrics.
 
 ---
 
 ### 2.3. Reproducibility & Seed Invariance
 
-* **Cross-Algorithm Invariance**: For a given seed $S$ and scenario $C$, the exact sequence of generated processes—including $T_{\text{arrival}}$, priority, CPU burst list, and I/O requests—MUST be **100% identical** across FCFS, Round Robin, Priority, and Custom algorithms.
+* **Cross-Algorithm Invariance**: For a given seed $S$ and scenario $C$, the exact sequence of generated
+  processes—including $T_{\text{arrival}}$, priority, CPU burst list, and I/O requests—MUST be **100%
+  identical** across FCFS, Round Robin, Priority, and Custom algorithms.
 * **Workload Scale**:
   * Minimum **1,000 processes** per execution run.
   * Minimum **100 independent seeds** per scenario (totaling 400 runs per algorithm).
+  * **Recommended target: 1,000 seeds per scenario**, if execution time allows — the minimum of 100 is
+    the mandatory floor, not the goal.
+* **Generator requirement**: all distributions in this document must be sampled using the seeded
+  pseudo-random generator (ELI-02), never with uncontrolled `rand()` — this is what guarantees the
+  cross-algorithm invariance above.
 
 ---
 
 ## 3. Mandatory Simulation Scenarios
+
+> Priority values below follow the same numeric convention adopted in `docs/modelo_processo.md`
+> (ASH-01) — currently `[1, 10]`, where a lower integer means higher priority.
 
 ```
 +-----------------------------------------------------------------------------------+
@@ -73,7 +100,8 @@ For study purposes, the team has decided **NOT to use instant 0 arrival**, optin
 ---
 
 ### 3.2. Scenario 2: I/O-Bound (`io_bound`)
-* **Objective**: Test scheduler responsiveness under heavy I/O operations and high queue transition frequency.
+* **Objective**: Test scheduler responsiveness under heavy I/O operations and high queue transition
+  frequency.
 * **Parameters**:
   * CPU Burst Length: Short (Uniform in $[1, 8]$ ticks).
   * I/O Request Count: High (Uniform in $[6, 15]$ requests).
@@ -84,7 +112,8 @@ For study purposes, the team has decided **NOT to use instant 0 arrival**, optin
 ---
 
 ### 3.3. Scenario 3: CPU-Bound (`cpu_bound`)
-* **Objective**: Measure throughput, turnaround time, and context-switch overhead under heavy computational workloads.
+* **Objective**: Measure throughput, turnaround time, and context-switch overhead under heavy
+  computational workloads.
 * **Parameters**:
   * CPU Burst Length: Long (Uniform in $[40, 200]$ ticks).
   * I/O Request Count: Low (Uniform in $[0, 2]$ requests).
@@ -95,7 +124,8 @@ For study purposes, the team has decided **NOT to use instant 0 arrival**, optin
 ---
 
 ### 3.4. Scenario 4: Unbalanced Priorities (`priority_unbalanced`)
-* **Objective**: Assess starvation risk for low-priority processes and evaluate fairness using **Jain's Fairness Index** on slowdown.
+* **Objective**: Assess starvation risk for low-priority processes and evaluate fairness using **Jain's
+  Fairness Index** on slowdown.
 * **Parameters**:
   * Priority Distribution:
     * **85% of processes**: HIGH Priority ($1 \le \text{priority} \le 3$).
@@ -124,3 +154,27 @@ All simulation runs MUST output raw metrics adhering to the following standardiz
 ```csv
 algorithm,scenario,seed,process_count,mean_turnaround,context_switches,jain_slowdown
 ```
+
+> This contract must remain the single source of truth for the CSV layout — any refinement should be
+> made here and mirrored in `docs/formato_csv.md` (JCK-09), not diverge between the two.
+
+---
+
+## 6. What this document does **not** define (and where to find it)
+
+- **Round Robin quantum**: an implementation decision, documented in `docs/escolhas_implementacao.md`
+  (ASH-06), since it can be adjusted experimentally without changing the workload itself.
+- **Context switch cost**: defined in `docs/troca_contexto.md` (JCK-01) — must be configurable, greater
+  than zero in the main experiments, and equal across all algorithms within a given experiment.
+- **I/O queue behavior** (parallelism, number of devices): defined in `docs/modelagem_io.md` (ASH-02).
+
+---
+
+## 7. Team review checklist
+
+- `ICR` confirms that the 4 scenarios above have sufficient parameters to implement the generator
+  (`ICR-05`), with no additional undocumented decisions needed;
+- `ELI` confirms that the seeded generator (`ELI-02`) can produce these distributions reproducibly;
+- `ASH` and `JCK` both confirm this document reflects the final agreed-upon parameters for scenarios
+  (ASH-03) and arrival model (JCK-02);
+- Everyone agrees the CSV contract in Section 5 matches `docs/formato_csv.md` (JCK-09) once it exists.
