@@ -13,7 +13,7 @@ by the team.
 Process-Scheduler-Simulator/
 ├── docs/                                    # Documentation Directory
 ├── include/                                 # Header files Directory
-├── relatorio/                               # Report Directory
+├── report/                                  # Report Directory
 ├── results/                                 # Results Directory
 ├── scripts/                                 # Scripts Directory
 ├── src/                                     # C files Directory
