@@ -8,4 +8,5 @@ int rng(int max, int min);
 
 int gerar_seed();
 
+int* gerar_1000_seeds();
 #endif
