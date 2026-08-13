@@ -12,11 +12,17 @@ typedef enum {
     CPU_RUNNING
 } CpuState;
 
-/* NOTE: the ready queue is intentionally NOT implemented here. See queue.h
- * — it's a separate, not-yet-finished module owned elsewhere in the
- * project and shared across all scheduling algorithms. This file only
- * calls queue_create/queue_enqueue/queue_dequeue/queue_is_empty/
- * queue_destroy against that interface. */
+/* NOTE (ELI-04): the ready queue is implemented in queue.h/queue.c, shared
+ * across all scheduling algorithms. This file uses the QueueIdx facade
+ * (queue_idx_create/queue_idx_enqueue/queue_idx_dequeue/queue_idx_is_empty/
+ * queue_idx_destroy), which stores process indices as int -- matching how
+ * this file already tracks the ready set. fcfs.c uses a different facade
+ * (Queue / queue_init / queue_enqueue / queue_dequeue / queue_is_empty /
+ * queue_destroy) that stores Process* directly instead; both facades share
+ * one generic pointer-queue core in queue.c. Only the queue_create(...) ->
+ * queue_idx_create(...) call and the five queue_*(rq, ...) call sites below
+ * were renamed to queue_idx_*(rq, ...) to resolve that interface conflict —
+ * no scheduling logic in this file was changed. */
 
 /* ---------------------------------------------------------------------
  * Min-heap of (process index, I/O completion tick), so we don't have to
@@ -133,7 +139,7 @@ int round_robin_run(Process *processes, int process_count, RRConfig config,
                "round_robin_run expects processes[] sorted by arrival_time ascending");
     }
 
-    Queue *rq = queue_create(process_count);
+    QueueIdx *rq = queue_idx_create(process_count);
     if (rq == NULL) return -1;
     BlockedHeap bh;
     bh_init(&bh, process_count);
@@ -168,7 +174,7 @@ int round_robin_run(Process *processes, int process_count, RRConfig config,
         /* 1. Admit arrivals due at this tick (new -> ready). */
         while (arrival_ptr < process_count && processes[arrival_ptr].arrival_time <= current_time) {
             processes[arrival_ptr].current_state = PROCESS_STATE_READY;
-            queue_enqueue(rq, arrival_ptr);
+            queue_idx_enqueue(rq, arrival_ptr);
             arrival_ptr++;
         }
 
@@ -179,12 +185,12 @@ int round_robin_run(Process *processes, int process_count, RRConfig config,
         while (!bh_empty(&bh) && bh_peek_tick(&bh) <= current_time) {
             BlockedEntry e = bh_pop(&bh);
             processes[e.idx].current_state = PROCESS_STATE_READY;
-            queue_enqueue(rq, e.idx);
+            queue_idx_enqueue(rq, e.idx);
         }
 
         /* 3. Dispatch if the CPU is idle and someone is ready. */
-        if (cpu_state == CPU_IDLE && !queue_is_empty(rq)) {
-            int target = queue_dequeue(rq);
+        if (cpu_state == CPU_IDLE && !queue_idx_is_empty(rq)) {
+            int target = queue_idx_dequeue(rq);
             if (config.context_switch_cost > 0) {
                 cpu_state = CPU_CONTEXT_SWITCHING;
                 cs_remaining = config.context_switch_cost;
@@ -261,7 +267,7 @@ int round_robin_run(Process *processes, int process_count, RRConfig config,
                  * (process_model.md Section 5, Running -> Ready row). */
                 assert(quantum_used <= config.quantum);
                 p->current_state = PROCESS_STATE_READY;
-                queue_enqueue(rq, running_index);
+                queue_idx_enqueue(rq, running_index);
                 cpu_state = CPU_IDLE;
 
                 if (slice_log != NULL && slices_written < slice_log_capacity) {
@@ -285,7 +291,7 @@ int round_robin_run(Process *processes, int process_count, RRConfig config,
         compute_metrics(processes, process_count, total_context_switches, current_time, out_metrics);
     }
 
-    queue_destroy(rq);
+    queue_idx_destroy(rq);
     bh_free(&bh);
     return 0;
 }
