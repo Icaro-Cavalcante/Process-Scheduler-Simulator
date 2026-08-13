@@ -54,4 +54,9 @@ void process_init(Process *p, int pid, int arrival_time, int priority, int num_b
 // Frees the dynamically allocated bursts array.
 void process_destroy(Process *p);
 
+// Helper functions for string representation and debugging.
+const char *process_state_to_string(ProcessState state);
+const char *burst_type_to_string(BurstType type);
+void process_print(const Process *p);
+
 #endif
