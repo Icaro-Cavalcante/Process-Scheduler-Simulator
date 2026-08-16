@@ -9,25 +9,9 @@
  * following the same pattern already used by run_ajie() in src/ajie.c.
  *
  * fcfs_run() (src/fcfs.c) mutates its input array in place and returns
- * void -- no RunMetrics, no context_switch_cost parameter. This
- * wrapper does not modify fcfs.c; it only works around fcfs_run's
- * existing signature so experiment_runner.c's dispatch table
- * (SCHEDULER_DISPATCH in scripts/experiment_runner.c) has a matching
- * run_fcfs symbol to link against, the same way run_priority/run_ajie
- * already provide one for their own algorithms.
- *
- * KNOWN DIVERGENCE (not fixed here, since it would require editing
- * fcfs.c, out of scope for this file): fcfs_run() does not apply
- * context_switch_cost to the simulated clock at all -- it only
- * increments each process's context_switches counter without adding
- * any ticks for it. That means FCFS results are not directly
- * comparable to Round Robin / Priority / AJIE on turnaround and
- * total_ticks whenever context_switch_cost > 0, even though the
- * context_switches count itself is still meaningful. This wrapper
- * intentionally still accepts cfg->context_switch_cost (validating it
- * is >= 0, mirroring the other wrappers) so the SchedulerFn call site
- * in experiment_runner.c stays uniform, but the value is not passed
- * to fcfs_run because fcfs_run has no parameter to receive it.
+ * void -- no RunMetrics. This wrapper computes RunMetrics from the
+ * mutated copy afterwards, the same way run_priority/run_ajie do for
+ * their own algorithms.
  */
 RunMetrics run_fcfs(const Process *processes, size_t n, const SimConfig *cfg) {
     RunMetrics metrics = {0.0, 0, 0.0, 0.0, 0};
@@ -58,7 +42,7 @@ RunMetrics run_fcfs(const Process *processes, size_t n, const SimConfig *cfg) {
         }
     }
 
-    fcfs_run(copy, (int)n);
+    fcfs_run(copy, (int)n, cfg->context_switch_cost);
 
     metrics = compute_run_metrics(copy, n);
     metrics.ok = 1;
