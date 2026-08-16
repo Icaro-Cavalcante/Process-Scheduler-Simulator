@@ -7,6 +7,19 @@ First-Served (FCFS), Round Robin (with configurable quantum), and
 non-preemptive Priority scheduling — alongside a custom algorithm proposed
 by the team.
 
+## 🚀 How to Run
+
+```bash
+make run              # build (if needed) and run the C simulator → results/*.csv
+make deps              # install Python deps (matplotlib, numpy, pandas)
+make reports            # generate plots (results/plots/) + LaTeX tables (results/tables.tex)
+make clean               # remove build artifacts
+```
+
+> On systems with an "externally managed" Python (e.g. GitHub Codespaces), run
+> `make deps PIP_FLAGS=--break-system-packages`, or use a virtualenv:
+> `python3 -m venv .venv && source .venv/bin/activate && make deps`.
+
 ## 📦 Directory Structure
 
 ```
