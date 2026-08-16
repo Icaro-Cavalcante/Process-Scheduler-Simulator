@@ -35,7 +35,7 @@ static int next_io_completion(BlockedEntry blocked[], int blocked_count) {
     return best;
 }
 
-void fcfs_run(Process processes[], int n) {
+void fcfs_run(Process processes[], int n, int context_switch_cost) {
     Queue ready_queue;
     queue_init(&ready_queue);
 
@@ -90,6 +90,8 @@ void fcfs_run(Process processes[], int n) {
             p->current_state = PROCESS_STATE_RUNNING;
             p->context_switches++;   // counts this dispatch as a context switch (JCK-01 defines the exact cost/rules)
 
+            current_time += context_switch_cost;
+
             Burst *cpu_burst = &p->bursts[p->current_burst_index];
             // Per Section 4: the burst at this index is guaranteed to be BURST_CPU here,
             // since running only starts right after New->Ready or Blocked->Ready,
@@ -103,8 +105,6 @@ void fcfs_run(Process processes[], int n) {
                 p->current_state = PROCESS_STATE_TERMINATED;
                 p->completion_time = current_time;
                 finished_count++;
-
-                printf("Process %d terminated at time %d\n", p->pid, current_time);
             } else {
                 // Running -> Blocked: next burst must be I/O (Section 4 guarantees this)
                 Burst *io_burst = &p->bursts[p->current_burst_index];
@@ -115,9 +115,6 @@ void fcfs_run(Process processes[], int n) {
                 blocked_count++;
 
                 p->current_burst_index++; // this I/O burst is "consumed" once it completes below
-
-                printf("Process %d blocked for I/O at time %d (until %d)\n",
-                       p->pid, current_time, current_time + io_burst->duration);
             }
 
             continue; // re-check arrivals/I-O completions before picking the next process
