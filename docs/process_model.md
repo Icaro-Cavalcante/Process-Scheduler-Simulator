@@ -15,10 +15,10 @@ To define, in a single and mandatory way for the whole simulator, **what a proce
 simulation: which attributes it carries, what each attribute means, and which states it goes through.
 No algorithm (FCFS, Round Robin, Priority, or the custom algorithm) may use a process representation
 different from the one described here — this is what guarantees that the comparison between them is
-fair and reproducible (Section 3 of the assignment).
+fair and reproducible.
 
 This document **does not** define how I/O or context switching work in detail — that is the
-responsibility of `docs/modelagem_io.md` (ASH-02) and `docs/troca_contexto.md` (JCK-01). Here we deal
+responsibility of `docs/modelagem_io.md` and `docs/troca_contexto.md`. Here we deal
 only with the process's data structure and its life cycle (states).
 
 ---
@@ -32,12 +32,12 @@ Every simulated process must be represented with, at minimum, the following fiel
 | `pid` | `int` | Unique process identifier within the run (sequential, starting at 0 or 1). |
 | `tempo_chegada` (arrival time) | `int` (time units) | Instant at which the process enters the system (**new → ready** state). Generated from the seed, according to the arrival model defined in `docs/cenarios.md`. |
 | `prioridade` (priority) | `int` | Process priority value. See the convention adopted in Section 3 below. |
-| `rajadas` (bursts) | array/list of `Rajada` structs | Alternating sequence of CPU and I/O bursts that describes the process's entire CPU/I-O "lifetime" (see Section 4). |
+| `rajadas` (bursts) | array/list of `Rajada` structs | Alternating sequence of CPU and I/O bursts that describes the process's entire CPU/I-O "lifetime". |
 | `indice_rajada_atual` (current burst index) | `int` | Pointer/index indicating which burst in the `rajadas` list is currently running or pending. |
 | `num_requisicoes_io` (I/O request count) | `int` | Count of how many I/O-type bursts exist in the `rajadas` list (derived information, kept explicit for metric convenience). |
-| `estado` (state) | `enum EstadoProcesso` | Current process state (see Section 5). |
+| `estado` (state) | `enum EstadoProcesso` | Current process state. |
 | `tempo_termino` (completion time) | `int` | Filled in when the process reaches the **finished** state; used to compute turnaround. |
-| `trocas_contexto_sofridas` (context switches suffered) | `int` | Counter of how many times this specific process was the target of a context switch (auxiliary metric, see JCK-01/ELI-07). |
+| `trocas_contexto_sofridas` (context switches suffered) | `int` | Counter of how many times this specific process was the target of a context switch. |
 
 ---
 
@@ -53,11 +53,11 @@ Every simulated process must be represented with, at minimum, the following fiel
   priority (Priority Scheduling, the custom algorithm, and any auxiliary analysis), as required by
   Section 3 of the assignment.
 - In case of a priority tie, the tie-breaking criterion is defined and documented separately in
-  `docs/escolhas_implementacao.md` (ASH-06), since it may vary by algorithm (e.g., FCFS by arrival
+  `docs/escolhas_implementacao.md`, since it may vary by algorithm (e.g., FCFS by arrival
   time as the tiebreaker).
 
 > **Update note:** the range was adjusted from the original `0`–`9` proposal to `1`–`10` to match the
-> value range already adopted in the merged `docs/cenarios.md` (JCK-02), so both documents are now
+> value range already adopted in the merged `docs/cenarios.md`, so both documents are now
 > consistent. If the team later revisits this choice, both files must be updated together.
 
 ---
@@ -126,21 +126,13 @@ Mandatory states (Section 3 of the assignment): **new, ready, running, blocked, 
 ## 6. Integration points with other documents
 
 - **Context switching** (cost, when it is accounted for, whether the CPU becomes unavailable) is
-  defined in `docs/troca_contexto.md` (JCK-01) and logically occurs at *Ready → Running* transitions.
+  defined in `docs/troca_contexto.md` and logically occurs at *Ready → Running* transitions.
 - The **ready queue and the I/O queue** (data structure, ordering, whether there are one or more
-  devices) are defined in `docs/modelagem_io.md` (ASH-02).
+  devices) are defined in `docs/modelagem_io.md`).
 - The **numerical parameters** for generating bursts, priorities, and arrival times per scenario are in
-  `docs/cenarios.md` (ASH-03).
-- Implementing the C struct (`src/process.h` / `src/process.c`) is ICR-04's responsibility and must
-  follow exactly the attributes and state enum described here. Any divergence found during
-  implementation must be reported and reconciled in ASH-05 (documentation review).
+  `docs/cenarios.md` .
+- Implementing the C struct (`src/process.h` / `src/process.c`). Any divergence found during
+  implementation must be reported.
 
 ---
 
-## 7. Team review checklist
-
-- All attributes in Section 2 make sense for the 4 algorithms (FCFS, RR, Priority, custom);
-- The priority convention (Section 3) has been read and accepted by JCK, ICR, and ELI;
-- The state diagram (Section 5) covers all cases, including non-preemptive algorithms;
-- ICR confirms that the C struct can be implemented directly from this document;
-- ELI confirms that the simulation engine can orchestrate these transitions.
