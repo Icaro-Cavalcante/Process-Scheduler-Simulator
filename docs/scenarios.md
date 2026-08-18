@@ -63,7 +63,7 @@ For study purposes, the team has decided **NOT to use instant 0 arrival**, optin
   * **Recommended target: 1,000 seeds per scenario**, if execution time allows — the minimum of 100 is
     the mandatory floor, not the goal.
 * **Generator requirement**: all distributions in this document must be sampled using the seeded
-  pseudo-random generator (ELI-02), never with uncontrolled `rand()` — this is what guarantees the
+  pseudo-random generator, never with uncontrolled `rand()` — this is what guarantees the
   cross-algorithm invariance above.
 
 ---
@@ -71,7 +71,7 @@ For study purposes, the team has decided **NOT to use instant 0 arrival**, optin
 ## 3. Mandatory Simulation Scenarios
 
 > Priority values below follow the same numeric convention adopted in `docs/modelo_processo.md`
-> (ASH-01) — currently `[1, 10]`, where a lower integer means higher priority.
+> Currently `[1, 10]`, where a lower integer means higher priority.
 
 ```
 +-----------------------------------------------------------------------------------+
@@ -156,25 +156,17 @@ algorithm,scenario,seed,process_count,mean_turnaround,context_switches,jain_slow
 ```
 
 > This contract must remain the single source of truth for the CSV layout — any refinement should be
-> made here and mirrored in `docs/formato_csv.md` (JCK-09), not diverge between the two.
+> made here and mirrored in `docs/formato_csv.md`, not diverge between the two.
 
 ---
 
 ## 6. What this document does **not** define (and where to find it)
 
 - **Round Robin quantum**: an implementation decision, documented in `docs/escolhas_implementacao.md`
-  (ASH-06), since it can be adjusted experimentally without changing the workload itself.
-- **Context switch cost**: defined in `docs/troca_contexto.md` (JCK-01) — must be configurable, greater
+, since it can be adjusted experimentally without changing the workload itself.
+- **Context switch cost**: defined in `docs/troca_contexto.md` — must be configurable, greater
   than zero in the main experiments, and equal across all algorithms within a given experiment.
-- **I/O queue behavior** (parallelism, number of devices): defined in `docs/modelagem_io.md` (ASH-02).
+- **I/O queue behavior** (parallelism, number of devices): defined in `docs/modelagem_io.md`.
 
 ---
 
-## 7. Team review checklist
-
-- `ICR` confirms that the 4 scenarios above have sufficient parameters to implement the generator
-  (`ICR-05`), with no additional undocumented decisions needed;
-- `ELI` confirms that the seeded generator (`ELI-02`) can produce these distributions reproducibly;
-- `ASH` and `JCK` both confirm this document reflects the final agreed-upon parameters for scenarios
-  (ASH-03) and arrival model (JCK-02);
-- Everyone agrees the CSV contract in Section 5 matches `docs/formato_csv.md` (JCK-09) once it exists.
