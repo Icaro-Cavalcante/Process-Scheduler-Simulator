@@ -20,6 +20,8 @@
   - [Compilation & Execution](#compilation--execution)
   - [Generating Plots & LaTeX Tables](#generating-plots--latex-tables)
   - [Validating Results](#validating-results)
+  - [🐳 Running with Docker](#-running-with-docker)
+  - [Clean Build Artifacts](#clean-build-artifacts)
 - [👤 Members & Team Roles](#-members--team-roles)
 - [👨‍🏫 Professor](#-professor)
 - [🎯 Acceptance Criteria & Evaluation Checklist](#-acceptance-criteria--evaluation-checklist)
@@ -186,6 +188,8 @@ Process-Scheduler-Simulator/
 │   └── round_robin.c / rr_wrapper.c         # Round Robin algorithm implementation
 ├── makefile                                 # Automated build system configuration
 ├── requirements.txt                         # Python dependencies for visualization scripts
+├── Dockerfile                               # Docker container specification (GCC + Python environment)
+├── .dockerignore                            # Excluded files for Docker build context
 └── README.md                                # Repository overview & documentation
 ```
 
@@ -198,6 +202,7 @@ Process-Scheduler-Simulator/
 - **C Compiler**: GCC (or Clang) supporting C11 standard.
 - **Build System**: GNU Make.
 - **Python**: Python 3.8+ (for plots and statistical tables).
+- **Docker** *(Optional)*: Docker Engine or Docker Desktop for containerized execution without local toolchains.
 
 ### Compilation & Execution
 
@@ -239,6 +244,49 @@ Validate that the CSV output conforms strictly to the schema specification:
 ```bash
 python3 results/parse_results.py results/scheduling_experiments.csv
 ```
+
+### 🐳 Running with Docker
+
+You can build and run the entire simulation pipeline in an isolated container without needing to configure local C compilers or Python environments.
+
+1. **Build the Docker image**:
+   ```bash
+   docker build -t process-scheduler-simulator .
+   ```
+
+2. **Execute the full pipeline (Simulation + Plots + Tables)**:
+   Mount the `results/` folder as a volume so that generated CSVs, figures, and LaTeX tables are saved directly to your host machine:
+
+   - **Linux / macOS / Git Bash**:
+     ```bash
+     docker run --rm -v $(pwd)/results:/app/results process-scheduler-simulator
+     ```
+   - **Windows (PowerShell)**:
+     ```powershell
+     docker run --rm -v ${PWD}/results:/app/results process-scheduler-simulator
+     ```
+   - **Windows (Command Prompt)**:
+     ```cmd
+     docker run --rm -v "%cd%/results":/app/results process-scheduler-simulator
+     ```
+
+3. **Running Specific Tasks with Docker**:
+   - **Run only the C simulation**:
+     ```bash
+     docker run --rm -v $(pwd)/results:/app/results process-scheduler-simulator make run
+     ```
+   - **Generate only charts and LaTeX tables**:
+     ```bash
+     docker run --rm -v $(pwd)/results:/app/results process-scheduler-simulator make plots tables
+     ```
+   - **Validate CSV results**:
+     ```bash
+     docker run --rm -v $(pwd)/results:/app/results process-scheduler-simulator python3 results/parse_results.py results/scheduling_experiments.csv
+     ```
+   - **Interactive container shell**:
+     ```bash
+     docker run --rm -it -v $(pwd)/results:/app/results process-scheduler-simulator bash
+     ```
 
 ### Clean Build Artifacts
 ```bash
